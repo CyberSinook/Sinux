@@ -1,26 +1,28 @@
 ENTRY(_start)
 
 SECTIONS {
-    . = 1M;
+  . = 0x100000;
 
-    .multiboot : {
-        *(.multiboot)
-    }
+  .text : {
+    KEEP(*(.multiboot))
+    *(.text*)
+  }
 
-    .text : {
-        *(.text)
-    }
+  .rodata : ALIGN(4K) {
+    *(.rodata*)
+  }
 
-    .data : {
-        *(.data)
-    }
+  .data : ALIGN(4K) {
+    *(.data*)
+  }
 
-    .bss : {
-        *(.bss)
-    }
+  .bss : ALIGN(4K) {
+    *(COMMON)
+    *(.bss*)
+  }
 
-    /DISCARD/ : {
-        *(.comment)
-        *(.note.gnu.property)
-    }
+  /DISCARD/ : {
+    *(.comment)
+    *(.note*)
+  }
 }

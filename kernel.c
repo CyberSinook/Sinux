@@ -1,19 +1,12 @@
 #include <stdbool.h>
 #include <stdint.h>
-#define MULTIBOOT_HEADER_MAGIC 0x1BADB002
-#define MULTIBOOT_HEADER_FLAGS 0x00000003
-#define CHECKSUM -(MULTIBOOT_HEADER_MAGIC + MULTIBOOT_HEADER_FLAGS)
+
 #define VIDEO_MEM 0xB8000
 #define WIDTH 80
 #define HEIGHT 25
 #define PORT_KEYBOARD 0x60
 #define PORT_STATUS 0x64
-__attribute__((section(".multiboot")))
-const unsigned int multiboot_header[] = {
-    MULTIBOOT_HEADER_MAGIC,
-    MULTIBOOT_HEADER_FLAGS,
-    CHECKSUM,
-};
+
 unsigned int stack[4096];
 const char scancode_to_ascii[] = {
     0, 27, '1', '2', '3', '4', '5', '6',
@@ -68,7 +61,7 @@ void vout(const char* str, int row, char color) {
         *video++ = color;
         offset += 2;
     }
-    row_offsets[row] = offset;
+    row_offsets[row] = offset; // موقعیت فعلی رو ذخیره می‌کنیم
 }
 void vin(char* buffer, char color, int row) {
     volatile char* video = (char*) VIDEO_MEM;
@@ -103,7 +96,7 @@ void vin(char* buffer, char color, int row) {
             }
         }
     }
-    row_offsets[row] = offset;
+    row_offsets[row] = offset; // موقعیت رو به‌روز می‌کنیم
 }
 void shutdown(){
     outw(0x0604 , 0x2000);
@@ -133,32 +126,46 @@ void system(){
     vout("|_____/  |_____| |_| \\_|  \\____/  /_/ \\_\\ " , 5 , 0x0a);
     vout("==========================================="    , 6 , 0x0f);
     vout("OS : SINUX" , 7 , 0x0f);
-    vout("Kernel : Sinux 0.01" , 8 , 0x0f);
+    vout("Kernel : Sinux 0.08" , 8 , 0x0f);
 
 
 }
 
 void kernel_main() {
     disable_cursor();
+    clear_screen(0x0f);
     bool on = true;
     int numcom = 0;
     char user[15];
+    char pass[15];
     vout("================================> [  " , 0 , 0x0f);
     vout("SINUX" , 0 , 0x0a);
     vout("  ] <=================================" , 0 , 0x0f);
 
     vout("Username : " , 1 , 0x0f);
     vin(user , 0x0f , 1);
-
+    vout("Password : " , 2 , 0x0d);
+    vin(pass , 0x0d , 2);
+    
+    if (strcmp(user , "root") == 0 && strcmp(pass , "root") == 0)
+    {
+        pass;
+    }
+    else
+    {
+        vout("Wrong username or password." , numcom , 0x4);
+        reboot();
+    }
+    
     clear_screen(0x0f);
 
     while(on){
         char command[160];
-        vout("[ " , numcom , 0x0a);
+        vout("<< " , numcom , 0x0a);
         vout(user , numcom , 0x0b);
-        vout(" @ ", numcom , 0x0f);
+        vout(" | ", numcom , 0x0f);
         vout("SINUX " , numcom , 0x4);
-        vout("] > " , numcom , 0x0a);
+        vout(">> # " , numcom , 0x0a);
         vin(command , 0x0f , numcom);
         numcom++;
         if(strcmp(command , "shutdown") == 0){
@@ -174,13 +181,11 @@ void kernel_main() {
         else if(strcmp(command , "system") == 0){
             system();
         }
+        else if(strcmp(command , "") == 0){
+            continue;
+        }
+        else {
+            vout("BAD COMMAND" , numcom , 0x4);
+        }
     }
-}
-__attribute__((naked)) void _start() {
-    asm volatile (
-        "mov $stack + 4096, %esp\n"
-        "call kernel_main\n"
-        "cli\n"
-        "hlt\n"
-    );
 }
