@@ -16,10 +16,10 @@ typedef struct {
 } multiboot_info_t;
 
 typedef struct __attribute__((packed)) {
-    uint32_t size;   /* size of the entry (not including this field) */
-    uint64_t addr;   /* base address */
-    uint64_t len;    /* length of the region */
-    uint32_t type;   /* type of memory region (1 = available) */
+    uint32_t size;   
+    uint64_t addr;   
+    uint64_t len;    
+    uint32_t type;   
 } multiboot_memory_map_t;
 
 #endif

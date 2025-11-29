@@ -3,23 +3,23 @@
 #include <stdint.h>
 #include "../../lib/multiboot_info.h"
 
-/* Page status constants */
+
 #define PAGE_FREE 0x0
 #define PAGE_USED 0x2
 
-/* Paging constants */
+
 #define PAGE_DIR_ENTRIES 1024
 #define PAGE_TABLE_ENTRIES 1024
 #define MAX_PAGE_DIRECTORIES 10
 
-/* Page Directory structure for tracking PD metadata */
+
 typedef struct {
-    uint32_t id;  /* Unique identifier for this page directory */
-    uint32_t pd_address;  /* Physical address of the page directory */
-    uint32_t last_pt_address;  /* Physical address of the last page table */
-    uint32_t last_pt_index;  /* Index of the last page table in this directory */
-    uint32_t last_entry_index;  /* Last used entry index in the last page table */
-    uint32_t used_tables;  /* Number of page tables used in this directory */
+    uint32_t id;  
+    uint32_t pd_address;  
+    uint32_t last_pt_address;  
+    uint32_t last_pt_index;  
+    uint32_t last_entry_index;  
+    uint32_t used_tables;  
 } page_directory_t;
 
 extern uint32_t memory_size;
@@ -38,7 +38,7 @@ uint32_t find_kernel_location(uint32_t size);
 uint8_t get_page_status(uint32_t page_num);
 void set_page_status(uint32_t page_num, uint8_t status);
 
-/* Page Directory functions */
+
 page_directory_t* create_page_directory(uint32_t id, uint32_t pd_address);
 page_directory_t* get_page_directory(uint32_t id);
 void update_page_directory_state(page_directory_t *pd, uint32_t pt_address, 

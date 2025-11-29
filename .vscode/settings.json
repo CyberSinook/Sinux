@@ -52,6 +52,11 @@
         "streambuf": "cpp",
         "typeinfo": "cpp",
         "filesystem": "cpp",
-        "stdint.h": "c"
-    }
+        "stdint.h": "c",
+        "memory_manager.h": "c",
+        "ps2_keyboard.h": "c",
+        "idt.h": "c",
+        "string.h": "c"
+    },
+    "C_Cpp.errorSquiggles": "disabled"
 }
