@@ -1,4 +1,7 @@
 #include <stdint.h>
+#include <lib/multiboot.h>
+#include <kernel/arch/x86/mm/pmm.h>
+#include <kernel/arch/x86/mm/heap.h>
 
 #define MULTIBOOT_HEADER_MAGIC 0x1BADB002
 #define MULTIBOOT_HEADER_FLAGS 0x00000007
@@ -21,7 +24,9 @@ const unsigned int multiboot_header[] = {
 
 uint32_t stack[1024];
 
-void loader(){
+void loader(multiboot_info_t *mbi) {
+	pmm_init(mbi);
+    heap_init();
 }
 
 __attribute__((naked)) void _start() {

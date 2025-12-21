@@ -2,7 +2,7 @@ ARCH     = x86
 CC       = gcc
 AS       = nasm
 LD       = ld
-CFLAGS   = -m32 -ffreestanding -O2 -Wall -Wextra
+CFLAGS   = -m32 -ffreestanding -O2 -Wall -Wextra -Iinclude
 ASFLAGS  = -felf32
 LDFLAGS  = -m elf_i386 -T linker.ld
 
@@ -20,7 +20,7 @@ kernel.elf: $(OBJ)
 	$(LD) $(LDFLAGS) -o $@ $(OBJ)
 
 %.o: %.c
-	$(CC) $(CFLAGS) -Iinclude -c $< -o $@
+	$(CC) $(CFLAGS) -c $< -o $@
 
 %.o: %.asm
 	$(AS) $(ASFLAGS) $< -o $@
