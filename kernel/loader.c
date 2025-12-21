@@ -3,6 +3,7 @@
 #include <kernel/arch/x86/mm/pmm.h>
 #include <kernel/arch/x86/mm/heap.h>
 #include <kernel/arch/x86/cpu/gdt.h>
+#include <kernel/arch/x86/interrupts/idt.h>
 
 #define MULTIBOOT_HEADER_MAGIC 0x1BADB002
 #define MULTIBOOT_HEADER_FLAGS 0x00000007
@@ -30,6 +31,9 @@ void loader(multiboot_info_t *mbi) {
     heap_init();
 
     gdt_init();
+    idt_init();
+
+    asm volatile("sti");
 }
 
 __attribute__((naked)) void _start() {
