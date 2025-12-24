@@ -4,6 +4,8 @@
 #include <kernel/arch/x86/mm/heap.h>
 #include <kernel/arch/x86/cpu/gdt.h>
 #include <kernel/arch/x86/interrupts/idt.h>
+#include <kernel/arch/x86/schedular/schedular.h>
+#include <lib/inout.h>
 
 #define MULTIBOOT_HEADER_MAGIC 0x1BADB002
 #define MULTIBOOT_HEADER_FLAGS 0x00000007
@@ -33,7 +35,16 @@ void loader(multiboot_info_t *mbi) {
     gdt_init();
     idt_init();
 
+    schedular_init();
+
     asm volatile("sti");
+
+    wait_process(1);
+
+    for(;;){
+        asm volatile("hlt");
+        outb(0x3F8, 'P');
+    }
 }
 
 __attribute__((naked)) void _start() {
