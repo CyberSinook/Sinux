@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <lib/multiboot.h>
 #include <kernel/arch/x86/mm/pmm.h>
+#include <kernel/arch/x86/mm/vmm.h>
 #include <kernel/arch/x86/mm/heap.h>
 #include <kernel/arch/x86/cpu/gdt.h>
 #include <kernel/arch/x86/interrupts/idt.h>
@@ -30,6 +31,7 @@ uint32_t stack[1024];
 
 void loader(multiboot_info_t *mbi) {
 	pmm_init(mbi);
+    vmm_init();
     heap_init();
 
     gdt_init();
