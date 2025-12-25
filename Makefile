@@ -2,38 +2,45 @@ ARCH     = x86
 CC       = gcc
 AS       = nasm
 LD       = ld
+
 CFLAGS   = -m32 -ffreestanding -O2 -Wall -Wextra -Iinclude
 ASFLAGS  = -felf32
 LDFLAGS  = -m elf_i386 -T linker.ld
 
-SRC_C    = $(shell find . -name "*.c")
-SRC_ASM  = $(shell find . -name "*.asm")
+BUILD    = build
+OBJDIR   = $(BUILD)/obj
+ISODIR   = $(BUILD)/iso
 
-OBJ_C    = $(SRC_C:.c=.o)
-OBJ_ASM  = $(SRC_ASM:.asm=.o)
+SRC_C    := $(shell find . -type f -name "*.c")
+SRC_ASM  := $(shell find . -type f -name "*.asm")
 
-OBJ      = $(OBJ_ASM) $(OBJ_C)
+OBJ_C    := $(patsubst ./%, $(OBJDIR)/%, $(SRC_C:.c=.o))
+OBJ_ASM  := $(patsubst ./%, $(OBJDIR)/%, $(SRC_ASM:.asm=.o))
 
-all: kernel.iso
+OBJ      := $(OBJ_C) $(OBJ_ASM)
 
-kernel.elf: $(OBJ)
+all: $(BUILD)/kernel.iso
+
+$(BUILD)/kernel.elf: $(OBJ)
+	@mkdir -p $(BUILD)
 	$(LD) $(LDFLAGS) -o $@ $(OBJ)
 
-%.o: %.c
+$(OBJDIR)/%.o: %.c
+	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-%.o: %.asm
+$(OBJDIR)/%.o: %.asm
+	@mkdir -p $(dir $@)
 	$(AS) $(ASFLAGS) $< -o $@
 
-kernel.iso: kernel.elf
-	mkdir -p build/iso/boot/grub
-	cp kernel.elf build/iso/boot/kernel.elf
-	cp boot/grub/grub.cfg build/iso/boot/grub/grub.cfg
-	grub-mkrescue -o kernel.iso build/iso
+$(BUILD)/kernel.iso: $(BUILD)/kernel.elf
+	@mkdir -p $(ISODIR)/boot/grub
+	cp $< $(ISODIR)/boot/kernel.elf
+	cp boot/grub/grub.cfg $(ISODIR)/boot/grub/grub.cfg
+	grub-mkrescue -o $@ $(ISODIR) >/dev/null 2>&1
 
 clean:
-	rm -f $(OBJ) kernel.elf kernel.iso
-	rm -rf build/iso
+	rm -rf $(BUILD)
 
-run: clean all
-	qemu-system-i386 -cdrom kernel.iso -m 128M
+run: all
+	qemu-system-i386 -cdrom $(BUILD)/kernel.iso -m 128M
