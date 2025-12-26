@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <kernel/arch/x86/pci/pci.h>
 #include <lib/inout.h>
+#include <kernel/drivers/pci_drivers/rtl8139.h>
 
 #define PCI_CONFIG_ADDRESS 0xCF8
 #define PCI_CONFIG_DATA    0xCFC
@@ -75,7 +76,7 @@ void pci_scan_bus() {
     }
 }
 
-bool (*pci_drivers[])(pci_device_t*) = {};
+bool (*pci_drivers[])(pci_device_t*) = {is_rtl8139};
 
 void find_drivers(){
     for(int i = 0; i < pci_device_count; i++){

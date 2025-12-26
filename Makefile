@@ -43,4 +43,4 @@ clean:
 	rm -rf $(BUILD)
 
 run: all
-	qemu-system-i386 -cdrom $(BUILD)/kernel.iso -m 128M
+	qemu-system-i386 -cdrom $(BUILD)/kernel.iso -m 128M -netdev user,id=net0 -device rtl8139,netdev=net0
