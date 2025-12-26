@@ -7,6 +7,8 @@
 #include <kernel/arch/x86/interrupts/idt.h>
 #include <kernel/arch/x86/schedular/schedular.h>
 #include <lib/inout.h>
+#include <kernel/drivers/ide.h>
+#include <kernel/arch/x86/pci/pci.h>
 
 #define MULTIBOOT_HEADER_MAGIC 0x1BADB002
 #define MULTIBOOT_HEADER_FLAGS 0x00000007
@@ -38,6 +40,9 @@ void loader(multiboot_info_t *mbi) {
     idt_init();
 
     schedular_init();
+
+    ide_init();
+    pci_init();
 
     asm volatile("sti");
 
