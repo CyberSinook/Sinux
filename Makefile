@@ -19,7 +19,7 @@ OBJ_ASM  := $(patsubst ./%, $(OBJDIR)/%, $(SRC_ASM:.asm=.o))
 
 OBJ      := $(OBJ_C) $(OBJ_ASM)
 
-all: $(BUILD)/kernel.iso
+all: $(BUILD)/Sinux-0.03.iso
 
 $(BUILD)/kernel.elf: $(OBJ)
 	@mkdir -p $(BUILD)
@@ -33,7 +33,7 @@ $(OBJDIR)/%.o: %.asm
 	@mkdir -p $(dir $@)
 	$(AS) $(ASFLAGS) $< -o $@
 
-$(BUILD)/kernel.iso: $(BUILD)/kernel.elf
+$(BUILD)/Sinux-0.03.iso: $(BUILD)/kernel.elf
 	@mkdir -p $(ISODIR)/boot/grub
 	cp $< $(ISODIR)/boot/kernel.elf
 	cp boot/grub/grub.cfg $(ISODIR)/boot/grub/grub.cfg
@@ -43,4 +43,4 @@ clean:
 	rm -rf $(BUILD)
 
 run: all
-	qemu-system-i386 -cdrom $(BUILD)/kernel.iso -m 128M -netdev user,id=net0 -device rtl8139,netdev=net0
+	qemu-system-i386 -cdrom $(BUILD)/Sinux-0.03.iso -m 128M -netdev user,id=net0 -device rtl8139,netdev=net0
