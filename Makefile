@@ -21,7 +21,7 @@ OBJ      := $(OBJ_C) $(OBJ_ASM)
 
 all: $(BUILD)/Sinux-0.03.iso
 
-$(BUILD)/kernel.elf: $(OBJ)
+$(BUILD)/Sinux-0.03.elf: $(OBJ)
 	@mkdir -p $(BUILD)
 	$(LD) $(LDFLAGS) -o $@ $(OBJ)
 
@@ -33,9 +33,9 @@ $(OBJDIR)/%.o: %.asm
 	@mkdir -p $(dir $@)
 	$(AS) $(ASFLAGS) $< -o $@
 
-$(BUILD)/Sinux-0.03.iso: $(BUILD)/kernel.elf
+$(BUILD)/Sinux-0.03.iso: $(BUILD)/Sinux-0.03.elf
 	@mkdir -p $(ISODIR)/boot/grub
-	cp $< $(ISODIR)/boot/kernel.elf
+	cp $< $(ISODIR)/boot/Sinux-0.03.elf
 	cp boot/grub/grub.cfg $(ISODIR)/boot/grub/grub.cfg
 	grub-mkrescue -o $@ $(ISODIR) >/dev/null 2>&1
 
