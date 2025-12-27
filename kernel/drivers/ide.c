@@ -3,7 +3,7 @@
 #include <kernel/arch/x86/schedular/schedular.h>
 #include <kernel/arch/x86/mm/heap.h>
 #include <lib/inout.h>
-#include <string.h>
+#include <lib/string.h>
 
 ide_command_t *ide_queue;
 
