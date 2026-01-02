@@ -52,7 +52,7 @@ void wait_process(uint16_t process_index){
 
 extern void schedular_irq0_interrupt();
 void schedular_init(){
-    processes = kmalloc(sizeof(process_t) * MAX_PROCESSES);
+    processes = (process_t*)kmalloc(sizeof(process_t) * MAX_PROCESSES);
 
     uint32_t esp = pmm_reserve_kernel_page(1);
 
