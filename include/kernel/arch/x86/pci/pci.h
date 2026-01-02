@@ -2,10 +2,7 @@
 #define PCI_H
 
 #include <stdint.h>
-
-typedef _Bool bool;
-#define true 1
-#define false 0
+#include <stdbool.h>
 
 typedef struct pci_device {
     uint16_t vendor_id;
