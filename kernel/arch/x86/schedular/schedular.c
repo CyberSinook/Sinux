@@ -56,7 +56,7 @@ void schedular_init(){
 
     uint32_t esp = pmm_reserve_kernel_page(1);
 
-    process_stack_t *pstack = (uint32_t)(esp-sizeof(process_stack_t));
+    process_stack_t *pstack = (process_stack_t *)(esp-sizeof(process_stack_t));
 
     pstack->eip = (uint32_t)schedular_halt;
     pstack->cs = 0x08;
