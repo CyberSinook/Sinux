@@ -1,4 +1,3 @@
-ARCH     = x86
 CC       = gcc
 AS       = nasm
 LD       = ld
@@ -44,3 +43,4 @@ clean:
 
 run: all
 	qemu-system-i386 -cdrom $(BUILD)/Sinux-0.03.iso -m 128M -netdev user,id=net0 -device rtl8139,netdev=net0
+
