@@ -13,7 +13,7 @@ uint32_t current_process_cr3;
 uint32_t current_process_index;
 
 void schedular_initialize_kernel_process(uint16_t process_index, uint32_t eip, uint32_t esp){
-    process_stack_t *pstack = (uint32_t)(esp-sizeof(process_stack_t));
+    process_stack_t *pstack = (process_stack_t *)(esp-sizeof(process_stack_t));
 
     pstack->eip = eip;
     pstack->cs = 0x08;
