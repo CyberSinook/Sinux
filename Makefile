@@ -3,7 +3,7 @@ CC       = gcc
 AS       = nasm
 LD       = ld
 
-CFLAGS   = -m32 -ffreestanding -O2 -Wall -Wextra -Iinclude
+CFLAGS   = -m32 -ffreestanding -O2 -Wall -Wextra -Iinclude -fno-stack-protector
 ASFLAGS  = -felf32
 LDFLAGS  = -m elf_i386 -T linker.ld
 
