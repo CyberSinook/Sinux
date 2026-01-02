@@ -46,8 +46,8 @@ void schedule(){
 }
 
 void wait_process(uint16_t process_index){
-    processes[processes[current_process_index].last_node].next_node = processes[current_process_index].next_node;
-    processes[processes[current_process_index].next_node].last_node = processes[current_process_index].last_node;
+    processes[processes[process_index].last_node].next_node = processes[process_index].next_node;
+    processes[processes[process_index].next_node].last_node = processes[process_index].last_node;
 }
 
 extern void schedular_irq0_interrupt();

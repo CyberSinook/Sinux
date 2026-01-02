@@ -80,7 +80,7 @@ bool (*pci_drivers[])(pci_device_t*) = {is_rtl8139};
 
 void find_drivers(){
     for(int i = 0; i < pci_device_count; i++){
-        for(int j = 0; j < sizeof(pci_drivers) / sizeof(pci_drivers[0]); j++){
+        for(uint32_t j = 0; j < sizeof(pci_drivers) / sizeof(pci_drivers[0]); j++){
             if(pci_drivers[j](&pci_devices[i])){
                 outb(0x3F8, 'D');
                 break;
