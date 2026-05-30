@@ -1,0 +1,40 @@
+name: Build Sinux OS
+
+on:
+  push:
+    branches: [ V0.03, main, develop ]
+  pull_request:
+    branches: [ V0.03, main, develop ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          build-essential \
+          nasm \
+          grub-pc-bin \
+          grub-common \
+          xorriso \
+          mtools
+    
+    - name: Build Sinux OS
+      run: make all
+    
+    - name: Upload ISO artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: sinux-iso
+        path: build/Sinux-0.03.iso
+        retention-days: 30
+    
+    - name: List build artifacts
+      run: |
+        echo "Build completed successfully!"
+        ls -lh build/
