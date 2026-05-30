@@ -3,7 +3,6 @@ name: Build Sinux OS
 on:
   push:
     branches: [ V0.03, main, develop ]
-    tags: [ '*' ]
   pull_request:
     branches: [ V0.03, main, develop ]
 
@@ -30,23 +29,34 @@ jobs:
     - name: Build Sinux OS
       run: make all
     
-    - name: Upload ISO to Release
-      if: startsWith(github.ref, 'refs/tags/')
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        TAG_NAME=${GITHUB_REF#refs/tags/}
-        gh release upload "$TAG_NAME" build/Sinux-0.03.iso --clobber
+    - name: Create iso directory if it doesn't exist
+      run: mkdir -p iso
     
-    - name: Upload ISO artifact (for non-tag builds)
-      if: '!startsWith(github.ref, ''refs/tags/'')'
+    - name: Copy ISO to iso folder
+      run: |
+        if [ -f build/Sinux-0.03.iso ]; then
+          cp build/Sinux-0.03.iso iso/Sinux-0.03.iso
+          echo "ISO copied successfully"
+        else
+          echo "ISO file not found!"
+          exit 1
+        fi
+    
+    - name: Commit and push ISO to repository
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add iso/Sinux-0.03.iso
+        git diff --quiet && git diff --staged --quiet || (git commit -m "Add built Sinux OS ISO - $(date +'%Y-%m-%d %H:%M:%S')" && git push)
+    
+    - name: Upload ISO artifact
       uses: actions/upload-artifact@v4
       with:
-        name: sinux-iso
-        path: build/Sinux-0.03.iso
+        name: sinux-iso-build
+        path: iso/Sinux-0.03.iso
         retention-days: 30
     
     - name: List build artifacts
       run: |
         echo "Build completed successfully!"
-        ls -lh build/
+        ls -lh iso/
