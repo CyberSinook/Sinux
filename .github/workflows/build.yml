@@ -38,3 +38,11 @@ jobs:
       run: |
         echo "Build completed successfully!"
         ls -lh build/
+    
+    - name: Create Release
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: softprops/action-gh-release@v1
+      with:
+        files: build/Sinux-0.03.iso
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
