@@ -3,6 +3,7 @@ name: Build Sinux OS
 on:
   push:
     branches: [ V0.03, main, develop ]
+    tags: [ 'v*' ]
   pull_request:
     branches: [ V0.03, main, develop ]
 
@@ -44,5 +45,6 @@ jobs:
       uses: softprops/action-gh-release@v1
       with:
         files: build/Sinux-0.03.iso
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        draft: false
+        prerelease: false
+        generate_release_notes: true
