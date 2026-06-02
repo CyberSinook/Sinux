@@ -48,10 +48,156 @@ pub const Shell = struct {
         try drivers.serial.print("Command not found: {s}\n", .{cmd_name});
     }
 
+    /// Print the rainbow banner with LGBT colors
+    pub fn printRainbowBanner(self: *Shell) !void {
+        // ANSI color codes for LGBT rainbow
+        const color_red = "\x1b[38;5;196m";      // Red
+        const color_orange = "\x1b[38;5;208m";   // Orange
+        const color_yellow = "\x1b[38;5;226m";   // Yellow
+        const color_green = "\x1b[38;5;46m";     // Green
+        const color_blue = "\x1b[38;5;33m";      // Blue
+        const color_purple = "\x1b[38;5;129m";   // Purple
+        const color_reset = "\x1b[0m";           // Reset color
+
+        // Clear screen
+        try drivers.serial.print("\x1b[2J\x1b[H", .{});
+
+        // Rainbow top border
+        try drivers.serial.write(color_red);
+        try drivers.serial.write("╔════════════════════════════════════════════╗\n");
+        try drivers.serial.write(color_orange);
+        try drivers.serial.write("║                                            ║\n");
+        try drivers.serial.write(color_yellow);
+        try drivers.serial.write("║                                            ║\n");
+        try drivers.serial.write(color_green);
+        try drivers.serial.write("║                                            ║\n");
+        try drivers.serial.write(color_blue);
+        try drivers.serial.write("║                                            ║\n");
+        try drivers.serial.write(color_purple);
+        try drivers.serial.write("║                                            ║\n");
+
+        // Rainbow SINUX text with each letter in different color
+        try drivers.serial.write(color_red);
+        try drivers.serial.write("║  ");
+        try drivers.serial.write(color_red);
+        try drivers.serial.write("███████╗");
+        try drivers.serial.write(color_orange);
+        try drivers.serial.write("██╗");
+        try drivers.serial.write(color_yellow);
+        try drivers.serial.write("    ██╗");
+        try drivers.serial.write(color_green);
+        try drivers.serial.write("██╗   ██╗██╗   ██╗██╗  ██╗");
+        try drivers.serial.write(color_blue);
+        try drivers.serial.write("  ║\n");
+
+        try drivers.serial.write(color_red);
+        try drivers.serial.write("║  ");
+        try drivers.serial.write(color_red);
+        try drivers.serial.write("██╔════╝");
+        try drivers.serial.write(color_orange);
+        try drivers.serial.write("██║");
+        try drivers.serial.write(color_yellow);
+        try drivers.serial.write("    ██║");
+        try drivers.serial.write(color_green);
+        try drivers.serial.write("██║   ██║██║   ██║╚██╗██╔╝");
+        try drivers.serial.write(color_blue);
+        try drivers.serial.write("  ║\n");
+
+        try drivers.serial.write(color_red);
+        try drivers.serial.write("║  ");
+        try drivers.serial.write(color_red);
+        try drivers.serial.write("███████╗");
+        try drivers.serial.write(color_orange);
+        try drivers.serial.write("██║");
+        try drivers.serial.write(color_yellow);
+        try drivers.serial.write("    ██║");
+        try drivers.serial.write(color_green);
+        try drivers.serial.write("██║   ██║██║   ██║ ╚███╔╝");
+        try drivers.serial.write(color_blue);
+        try drivers.serial.write("   ║\n");
+
+        try drivers.serial.write(color_red);
+        try drivers.serial.write("║  ");
+        try drivers.serial.write(color_red);
+        try drivers.serial.write("╚════██║");
+        try drivers.serial.write(color_orange);
+        try drivers.serial.write("██║");
+        try drivers.serial.write(color_yellow);
+        try drivers.serial.write("    ██║");
+        try drivers.serial.write(color_green);
+        try drivers.serial.write("██║   ██║██║   ██║ ██╔██╗");
+        try drivers.serial.write(color_blue);
+        try drivers.serial.write("   ║\n");
+
+        try drivers.serial.write(color_red);
+        try drivers.serial.write("║  ");
+        try drivers.serial.write(color_red);
+        try drivers.serial.write("███████║");
+        try drivers.serial.write(color_orange);
+        try drivers.serial.write("███████╗");
+        try drivers.serial.write(color_yellow);
+        try drivers.serial.write("███████╗");
+        try drivers.serial.write(color_green);
+        try drivers.serial.write("╚██████╔╝╚██████╔╝██╔╝ ██╗");
+        try drivers.serial.write(color_blue);
+        try drivers.serial.write("  ║\n");
+
+        try drivers.serial.write(color_red);
+        try drivers.serial.write("║  ");
+        try drivers.serial.write(color_red);
+        try drivers.serial.write("╚══════╝");
+        try drivers.serial.write(color_orange);
+        try drivers.serial.write("╚══════╝");
+        try drivers.serial.write(color_yellow);
+        try drivers.serial.write("╚══════╝");
+        try drivers.serial.write(color_green);
+        try drivers.serial.write(" ╚═════╝  ╚═════╝ ╚═╝  ╚═╝");
+        try drivers.serial.write(color_blue);
+        try drivers.serial.write("  ║\n");
+
+        // Rainbow separator
+        try drivers.serial.write(color_purple);
+        try drivers.serial.write("║                                            ║\n");
+        try drivers.serial.write(color_red);
+        try drivers.serial.write("║    ");
+        try drivers.serial.write(color_orange);
+        try drivers.serial.write("🏳️‍🌈 Zig Edition - Pride in Code 🏳️‍🌈");
+        try drivers.serial.write(color_yellow);
+        try drivers.serial.write("     ║\n");
+        try drivers.serial.write(color_green);
+        try drivers.serial.write("║                                            ║\n");
+
+        // Rainbow bottom border
+        try drivers.serial.write(color_blue);
+        try drivers.serial.write("║                                            ║\n");
+        try drivers.serial.write(color_purple);
+        try drivers.serial.write("║                                            ║\n");
+        try drivers.serial.write(color_red);
+        try drivers.serial.write("╚════════════════════════════════════════════╝\n");
+
+        // Welcome messages in rainbow
+        try drivers.serial.write(color_red);
+        try drivers.serial.write("\n✨ ");
+        try drivers.serial.write(color_orange);
+        try drivers.serial.write("Welcome to Sinux Shell");
+        try drivers.serial.write(color_yellow);
+        try drivers.serial.write(" (Zig Edition)");
+        try drivers.serial.write(color_green);
+        try drivers.serial.write(" ✨\n");
+
+        try drivers.serial.write(color_blue);
+        try drivers.serial.write("Type 'help' for available commands\n");
+        try drivers.serial.write(color_purple);
+        try drivers.serial.write("Love is Love - Code with Pride!\n");
+        try drivers.serial.write(color_reset);
+        try drivers.serial.write("\n");
+    }
+
     pub fn run(self: *Shell) !void {
         self.running = true;
-        try drivers.serial.print("\n=== SINUX SHELL (Zig Edition) ===\n", .{});
-        try drivers.serial.print("Type 'help' for commands\n\n", .{});
+        
+        // Print the rainbow banner
+        try self.printRainbowBanner();
 
         // Shell loop would go here
         // For now, just demonstrate it works
