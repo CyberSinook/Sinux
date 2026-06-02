@@ -7,6 +7,7 @@ pub const arch = @import("kernel/arch/x86/mod.zig");
 pub const drivers = @import("kernel/drivers/mod.zig");
 pub const sys = @import("kernel/sys/mod.zig");
 pub const games = @import("kernel/games/mod.zig");
+pub const boot_bsd = @import("kernel/boot_bsd.zig");
 
 /// Multiboot info structure
 pub const MultibootInfo = extern struct {
@@ -38,7 +39,6 @@ var gpa = std.heap.GeneralPurposeAllocator(.{
 }){};
 
 pub fn main() !void {
-    // Setup allocator
     defer _ = gpa.deinit();
     const allocator = gpa.allocator();
 
@@ -57,15 +57,15 @@ pub fn main() !void {
     try drivers.pic.init();
 
     // Print boot message
-    try drivers.serial.print("\n=== SINUX OS (Zig Edition) ===\n");
-    try drivers.serial.print("Initializing system...\n");
+    try drivers.serial.print("\n=== SINUX OS (Zig Edition) ===\n", .{});
+    try drivers.serial.print("Initializing system...\n", .{});
 
     // Initialize init system
-    var init_system = try sys.init.InitSystem.create(allocator);
+    var init_system = try sys.init_mod.InitSystem.create(allocator);
     defer init_system.destroy();
 
     // Register Pacman game service
-    const pacman_service = sys.init.Service{
+    const pacman_service = sys.init_mod.Service{
         .id = 0,
         .name = "Pacman Game",
         .service_type = .game,
@@ -82,7 +82,7 @@ pub fn main() !void {
     try init_system.runDefaultService();
 
     // Shutdown
-    try drivers.serial.print("\n[INIT] System shutdown\n");
+    try drivers.serial.print("\n[INIT] System shutdown\n", .{});
 
     while (true) {
         asm volatile ("hlt");
