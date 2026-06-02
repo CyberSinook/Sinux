@@ -1,1 +1,106 @@
-#include <stdint.h>\n#include <lib/multiboot.h>\n#include <kernel/arch/x86/mm/pmm.h>\n#include <kernel/arch/x86/mm/vmm.h>\n#include <kernel/arch/x86/mm/heap.h>\n#include <kernel/arch/x86/cpu/gdt.h>\n#include <kernel/arch/x86/interrupts/idt.h>\n#include <kernel/arch/x86/schedular/schedular.h>\n#include <lib/inout.h>\n#include <kernel/drivers/ide.h>\n#include <kernel/arch/x86/pci/pci.h>\n#include <kernel/games/pacman.h>\n#include <kernel/games/pacman_console.h>\n\n#define MULTIBOOT_HEADER_MAGIC 0x1BADB002\n#define MULTIBOOT_HEADER_FLAGS 0x00000007\n#define CHECKSUM -(MULTIBOOT_HEADER_MAGIC + MULTIBOOT_HEADER_FLAGS)\n__attribute__((section(\".multiboot\")))\nconst unsigned int multiboot_header[] = {\n    MULTIBOOT_HEADER_MAGIC,\n    MULTIBOOT_HEADER_FLAGS,\n    CHECKSUM,\n    0,\n    0,\n    0,\n    0,\n    0,\n    0,    // type 0=vbe 1=text mode\n    1024, // width\n    768,  // height\n    32    // depth\n};\n\nuint32_t stack[1024];\n\n/* Global game instance */\nstatic pacman_game_t pacman_game;\nstatic int game_running = 0;\n\n/**\n * pacman_game_loop - Main game loop for Pacman\n */\nvoid pacman_game_loop(void) {\n    if (pacman_init(&pacman_game) != 0) {\n        outb(0x3F8, 'E');\n        outb(0x3F8, 'r');\n        outb(0x3F8, 'r');\n        return;\n    }\n    \n    game_running = 1;\n    uint32_t frame_counter = 0;\n    \n    /* Print welcome message */\n    const char *welcome = \"\\n=== SINUX PACMAN GAME ===\\n\";\n    for (const char *p = welcome; *p; p++) {\n        outb(0x3F8, *p);\n    }\n    \n    const char *controls = \"Controls: W=Up, S=Down, A=Left, D=Right, P=Pause, R=Restart\\n\";\n    for (const char *p = controls; *p; p++) {\n        outb(0x3F8, *p);\n    }\n    \n    /* Main game loop */\n    while (game_running && pacman_game.state != PACMAN_STATE_GAME_OVER && pacman_game.state != PACMAN_STATE_WIN) {\n        /* Update game state */\n        pacman_update(&pacman_game);\n        \n        /* Render game */\n        if (frame_counter % 10 == 0) {\n            pacman_console_render(&pacman_game);\n        }\n        \n        /* Simple frame delay */\n        for (uint32_t i = 0; i < 1000000; i++) {\n            asm volatile(\"nop\");\n        }\n        \n        frame_counter++;\n    }\n    \n    /* Game end */\n    if (pacman_game.state == PACMAN_STATE_WIN) {\n        const char *win_msg = \"\\n*** YOU WIN! ***\\n\";\n        for (const char *p = win_msg; *p; p++) {\n            outb(0x3F8, *p);\n        }\n    } else if (pacman_game.state == PACMAN_STATE_GAME_OVER) {\n        const char *over_msg = \"\\n*** GAME OVER ***\\n\";\n        for (const char *p = over_msg; *p; p++) {\n            outb(0x3F8, *p);\n        }\n    }\n    \n    /* Print final score */\n    const char *score_msg = \"Final Score: \";\n    for (const char *p = score_msg; *p; p++) {\n        outb(0x3F8, *p);\n    }\n    \n    /* Print score digits */\n    uint32_t score = pacman_game.player.score;\n    uint32_t divisor = 10000;\n    while (divisor >= 1) {\n        uint8_t digit = (score / divisor) % 10;\n        outb(0x3F8, '0' + digit);\n        divisor /= 10;\n    }\n    outb(0x3F8, '\\n');\n    \n    game_running = 0;\n}\n\n/**\n * pacman_keyboard_handler - Handle keyboard input for game\n * Called periodically to check for input\n */\nint pacman_keyboard_handler(int key) {\n    if (!game_running) {\n        return -1;\n    }\n    \n    return pacman_input(&pacman_game, key);\n}\n\nvoid loader(multiboot_info_t *mbi) {\n\tpmm_init(mbi);\n    vmm_init();\n    heap_init();\n\n    gdt_init();\n    idt_init();\n\n    schedular_init();\n\n    ide_init();\n    pci_init();\n\n    asm volatile(\"sti\");\n\n    /* Print boot message */\n    const char *boot_msg = \"\\n=== SINUX OS BOOTED ===\\n\";\n    for (const char *p = boot_msg; *p; p++) {\n        outb(0x3F8, *p);\n    }\n    \n    const char *start_game_msg = \"Starting Pacman game...\\n\";\n    for (const char *p = start_game_msg; *p; p++) {\n        outb(0x3F8, *p);\n    }\n    \n    /* Start Pacman game */\n    pacman_game_loop();\n    \n    /* Return to idle loop after game ends */\n    const char *idle_msg = \"\\nReturning to idle...\\n\";\n    for (const char *p = idle_msg; *p; p++) {\n        outb(0x3F8, *p);\n    }\n\n    wait_process(1);\n\n    for(;;){\n        asm volatile(\"hlt\");\n        outb(0x3F8, 'P');\n    }\n}\n\n__attribute__((naked)) void _start() {\n    asm volatile (\n        \"mov $stack + 4096, %esp\\n\"\n        \"push %ebx\\n\"\n        \"call loader\\n\"\n        \"cli\\n\"\n        \"hlt\\n\"\n    );\n}\n
+#include <stdint.h>
+#include <lib/multiboot.h>
+#include <kernel/arch/x86/mm/pmm.h>
+#include <kernel/arch/x86/mm/vmm.h>
+#include <kernel/arch/x86/mm/heap.h>
+#include <kernel/arch/x86/cpu/gdt.h>
+#include <kernel/arch/x86/interrupts/idt.h>
+#include <kernel/arch/x86/schedular/schedular.h>
+#include <lib/inout.h>
+#include <kernel/drivers/ide.h>
+#include <kernel/arch/x86/pci/pci.h>
+#include <kernel/sys/init.h>
+
+#define MULTIBOOT_HEADER_MAGIC 0x1BADB002
+#define MULTIBOOT_HEADER_FLAGS 0x00000007
+#define CHECKSUM -(MULTIBOOT_HEADER_MAGIC + MULTIBOOT_HEADER_FLAGS)
+__attribute__((section(".multiboot")))
+const unsigned int multiboot_header[] = {
+    MULTIBOOT_HEADER_MAGIC,
+    MULTIBOOT_HEADER_FLAGS,
+    CHECKSUM,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,    // type 0=vbe 1=text mode
+    1024, // width
+    768,  // height
+    32    // depth
+};
+
+uint32_t stack[1024];
+
+/* Global init system */
+static init_system_t init_system;
+
+/* Pacman service functions (declared in init.c) */
+extern int pacman_service_start(void);
+extern int pacman_service_stop(void);
+extern int pacman_service_run(void);
+
+void loader(multiboot_info_t *mbi) {
+	pmm_init(mbi);
+    vmm_init();
+    heap_init();
+
+    gdt_init();
+    idt_init();
+
+    schedular_init();
+
+    ide_init();
+    pci_init();
+
+    asm volatile("sti");
+
+    /* Print boot message */
+    const char *boot_msg = "\n=== SINUX OS BOOTING ===\n";
+    for (const char *p = boot_msg; *p; p++) {
+        outb(0x3F8, *p);
+    }
+    
+    /* Initialize init system */
+    init_system_init(&init_system);
+
+    /* Register Pacman game service */
+    init_service_t pacman_service = {
+        .id = 0,
+        .name = "Pacman Game",
+        .type = SERVICE_GAME,
+        .start = pacman_service_start,
+        .stop = pacman_service_stop,
+        .state = 0
+    };
+    init_register_service(&init_system, &pacman_service);
+
+    /* Set Pacman as default service */
+    init_set_default_service(&init_system, 0);
+
+    /* Run default service (Pacman game) */
+    init_run_default_service(&init_system);
+
+    /* After service completes, return to idle */
+    const char *idle_msg = "\n[INIT] Returning to idle mode\n";
+    for (const char *p = idle_msg; *p; p++) {
+        outb(0x3F8, *p);
+    }
+
+    wait_process(1);
+
+    for(;;){
+        asm volatile("hlt");
+        outb(0x3F8, 'P');
+    }
+}
+
+__attribute__((naked)) void _start() {
+    asm volatile (
+        "mov $stack + 4096, %esp\n"
+        "push %ebx\n"
+        "call loader\n"
+        "cli\n"
+        "hlt\n"
+    );
+}
