@@ -14,8 +14,8 @@ run-uefi: iso
 
 run-bios: iso
 	@[ -f $(DISK) ] || { echo "[ERR] $(DISK) not found."; exit 1; }
-	@echo "[BIOS mode]"
-	$(QEMU) $(QEMU_BASE) $(QEMU_DISK) -serial stdio -display sdl
+	@echo "[BIOS mode with graphical display]"
+	$(QEMU) $(QEMU_BASE) $(QEMU_DISK) -display gtk
 
 run-debug: iso
 	@[ -f $(DISK) ] || { echo "[ERR] $(DISK) not found."; exit 1; }

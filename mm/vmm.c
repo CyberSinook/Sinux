@@ -1,8 +1,10 @@
 #include "vmm.h"
 #include "pmm.h"
+#include "slab.h"
 #include "../lib/string.h"
 
 static uint64_t *kernel_pml4 = NULL;
+static bool slab_ready = false;
 
 static uint64_t *
 get_or_alloc(uint64_t *table, int idx, uint64_t flags)
@@ -142,28 +144,36 @@ vmm_init(void)
     uint64_t cr3;
     __asm__ volatile ("mov %%cr3, %0" : "=r"(cr3));
     kernel_pml4 = (uint64_t *)(cr3 & ~0xFFFULL);
+    
+    slab_init();
+    slab_ready = true;
 }
-static uint8_t  *heap_cur  = NULL;
-static size_t    heap_left = 0;
 
 void *
 kmalloc(size_t size)
 {
-    size = (size + 15) & ~(size_t)15;
-    if (heap_left < size) {
-        size_t pages = (size + PAGE_SIZE - 1) / PAGE_SIZE;
-        heap_cur  = pmm_alloc();
-        heap_left = pages * PAGE_SIZE;
-        if (!heap_cur) return NULL;
-        for (size_t i = 1; i < pages; i++) {
-            void *extra = pmm_alloc();
-            if (!extra) { heap_cur = NULL; heap_left = 0; return NULL; }
+    if (slab_ready) {
+        return kmalloc_slab(size);
+    } else {
+        static uint8_t *heap_cur = NULL;
+        static size_t heap_left = 0;
+        
+        size = (size + 15) & ~(size_t)15;
+        if (heap_left < size) {
+            size_t pages = (size + PAGE_SIZE - 1) / PAGE_SIZE;
+            heap_cur  = pmm_alloc();
+            heap_left = pages * PAGE_SIZE;
+            if (!heap_cur) return NULL;
+            for (size_t i = 1; i < pages; i++) {
+                void *extra = pmm_alloc();
+                if (!extra) { heap_cur = NULL; heap_left = 0; return NULL; }
+            }
         }
+        void *ptr = heap_cur;
+        heap_cur  += size;
+        heap_left -= size;
+        return ptr;
     }
-    void *ptr = heap_cur;
-    heap_cur  += size;
-    heap_left -= size;
-    return ptr;
 }
 
 void *
@@ -174,4 +184,11 @@ kmalloc_zero(size_t size)
     return p;
 }
 
-void kfree(void *ptr) { (void)ptr; }
+void
+kfree(void *ptr)
+{
+    if (!ptr) return;
+    if (slab_ready) {
+        kfree_slab(ptr);
+    }
+}
