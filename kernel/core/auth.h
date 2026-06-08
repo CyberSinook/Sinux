@@ -2,9 +2,9 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#define MAX_USERS     16
+#define MAX_USERS     64
 #define MAX_USERNAME  32
-#define MAX_PASSWORD  64
+#define MAX_PASSWORD  128
 #define MAX_HOMEDIR   128
 #define MAX_SHELL     64
 

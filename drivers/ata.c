@@ -2,6 +2,7 @@
 #include "../lib/io.h"
 #include "../lib/string.h"
 #include "../lib/printk.h"
+#include "../lib/errno.h"
 
 #define ATA_DATA      0
 #define ATA_FEATURES  1
@@ -22,6 +23,9 @@
 #define ATA_SR_DRQ  0x08
 #define ATA_SR_ERR  0x01
 
+#define ATA_TIMEOUT_POLL   500000
+#define ATA_TIMEOUT_BUSY   1000000
+
 static ata_drive_t drives[4];
 static int         drive_count = 0;
 
@@ -34,11 +38,17 @@ ata_wait(uint16_t base)
 static bool
 ata_poll(uint16_t base)
 {
-    for (int i = 0; i < 100000; i++) {
+    for (int i = 0; i < ATA_TIMEOUT_POLL; i++) {
         uint8_t s = inb(base + ATA_STATUS);
-        if (s & ATA_SR_ERR) return false;
+        if (s & ATA_SR_ERR) {
+            printk(KERN_ERR "ata: error detected (status=0x%x)\n", (uint64_t)s);
+            errno = EIO;
+            return false;
+        }
         if (!(s & ATA_SR_BSY) && (s & ATA_SR_DRQ)) return true;
     }
+    printk(KERN_ERR "ata: timeout waiting for DRQ\n");
+    errno = ETIMEDOUT;
     return false;
 }
 
@@ -53,13 +63,27 @@ ata_identify(uint16_t base, int slave, ata_drive_t *drv)
     outb(base + ATA_CMD, ATA_CMD_IDENTIFY);
 
     uint8_t status = inb(base + ATA_STATUS);
-    if (status == 0) return false;
+    if (status == 0) {
+        errno = ENODEV;
+        return false;
+    }
 
-    for (int i = 0; i < 100000; i++) {
+    for (int i = 0; i < ATA_TIMEOUT_BUSY; i++) {
         status = inb(base + ATA_STATUS);
         if (!(status & ATA_SR_BSY)) break;
     }
-    if (inb(base + ATA_LBA1) || inb(base + ATA_LBA2)) return false;
+    
+    if (status & ATA_SR_BSY) {
+        printk(KERN_ERR "ata: timeout waiting for drive\n");
+        errno = ETIMEDOUT;
+        return false;
+    }
+    
+    if (inb(base + ATA_LBA1) || inb(base + ATA_LBA2)) {
+        errno = ENODEV;
+        return false;
+    }
+    
     if (!ata_poll(base)) return false;
 
     uint16_t buf[256];
@@ -100,6 +124,18 @@ ata_init(void)
 bool
 ata_read(ata_drive_t *drv, uint32_t lba, uint8_t count, void *buf)
 {
+    if (!drv || !drv->present) {
+        errno = ENODEV;
+        return false;
+    }
+    
+    if (lba + count > drv->sectors) {
+        errno = EINVAL;
+        printk(KERN_ERR "ata: read beyond disk (lba=%u, sectors=%u)\n",
+               (uint64_t)lba, (uint64_t)drv->sectors);
+        return false;
+    }
+    
     outb(drv->base + ATA_DRIVE,
          (uint8_t)(0xE0 | (drv->slave << 4) | ((lba >> 24) & 0xF)));
     outb(drv->base + ATA_FEATURES, 0);
@@ -112,7 +148,10 @@ ata_read(ata_drive_t *drv, uint32_t lba, uint8_t count, void *buf)
     uint16_t *dst = (uint16_t *)buf;
     for (int s = 0; s < count; s++) {
         ata_wait(drv->base);
-        if (!ata_poll(drv->base)) return false;
+        if (!ata_poll(drv->base)) {
+            printk(KERN_ERR "ata: read failed at sector %u\n", (uint64_t)(lba + s));
+            return false;
+        }
         for (int i = 0; i < 256; i++)
             dst[s * 256 + i] = inw(drv->base + ATA_DATA);
     }
@@ -122,6 +161,18 @@ ata_read(ata_drive_t *drv, uint32_t lba, uint8_t count, void *buf)
 bool
 ata_write(ata_drive_t *drv, uint32_t lba, uint8_t count, const void *buf)
 {
+    if (!drv || !drv->present) {
+        errno = ENODEV;
+        return false;
+    }
+    
+    if (lba + count > drv->sectors) {
+        errno = EINVAL;
+        printk(KERN_ERR "ata: write beyond disk (lba=%u, sectors=%u)\n",
+               (uint64_t)lba, (uint64_t)drv->sectors);
+        return false;
+    }
+    
     outb(drv->base + ATA_DRIVE,
          (uint8_t)(0xE0 | (drv->slave << 4) | ((lba >> 24) & 0xF)));
     outb(drv->base + ATA_FEATURES, 0);
@@ -134,7 +185,10 @@ ata_write(ata_drive_t *drv, uint32_t lba, uint8_t count, const void *buf)
     const uint16_t *src = (const uint16_t *)buf;
     for (int s = 0; s < count; s++) {
         ata_wait(drv->base);
-        if (!ata_poll(drv->base)) return false;
+        if (!ata_poll(drv->base)) {
+            printk(KERN_ERR "ata: write failed at sector %u\n", (uint64_t)(lba + s));
+            return false;
+        }
         for (int i = 0; i < 256; i++)
             outw(drv->base + ATA_DATA, src[s * 256 + i]);
     }

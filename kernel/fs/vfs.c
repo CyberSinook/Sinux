@@ -3,7 +3,7 @@
 #include "../../lib/string.h"
 #include "../../lib/printk.h"
 
-#define MAX_MOUNTS 8
+#define MAX_MOUNTS 32
 
 typedef struct {
     char      path[256];

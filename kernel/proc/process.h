@@ -3,8 +3,8 @@
 #include <stddef.h>
 #include "../ipc/signal.h"
 
-#define MAX_PROCS   64
-#define MAX_FDS     16
+#define MAX_PROCS   256
+#define MAX_FDS     64
 #define KSTACK_SIZE 8192
 
 typedef enum {

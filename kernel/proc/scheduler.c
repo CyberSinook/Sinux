@@ -3,7 +3,7 @@
 #include "../../arch/x86_64/pit.h"
 #include "../../lib/string.h"
 
-#define SCHED_QUEUE_SIZE 64
+#define SCHED_QUEUE_SIZE 256
 
 static process_t *queue[SCHED_QUEUE_SIZE];
 static int        q_head = 0, q_tail = 0, q_count = 0;

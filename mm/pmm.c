@@ -18,7 +18,7 @@ typedef struct __attribute__((packed)) {
     uint32_t type, _res;
 } mb2_mmap_entry_t;
 
-#define BITMAP_MAX_PAGES (1024 * 1024)   
+#define BITMAP_MAX_PAGES (16 * 1024 * 1024)   
 
 static uint8_t  *bitmap      = NULL;
 static size_t    total_pages = 0;

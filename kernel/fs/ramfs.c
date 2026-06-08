@@ -3,9 +3,9 @@
 #include "../../mm/vmm.h"
 #include "../../lib/string.h"
 
-#define RAMFS_MAX_NODES  256
+#define RAMFS_MAX_NODES  2048
 #define RAMFS_MAX_DATA   (4096 * 16)   
-#define RAMFS_MAX_CHILDREN 32
+#define RAMFS_MAX_CHILDREN 128
 
 typedef struct ramfs_node {
     char       name[256];

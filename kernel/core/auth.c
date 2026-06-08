@@ -2,6 +2,7 @@
 #include "../fs/vfs.h"
 #include "../../lib/string.h"
 #include "../../lib/printk.h"
+#include "../../lib/sha256.h"
 
 #define PASSWD_FILE "/etc/passwd"
 
@@ -113,7 +114,15 @@ bool auth_check(const char *user, const char *pass)
 {
     user_entry_t *u = find_user(user);
     if (!u) return false;
-    return kstrcmp(u->password, pass) == 0;
+    
+    if (kstrlen(u->password) == 0 && kstrlen(pass) == 0)
+        return true;
+    
+    if (kstrlen(u->password) == 64) {
+        return sha256_verify(pass, u->password);
+    } else {
+        return kstrcmp(u->password, pass) == 0;
+    }
 }
 
 bool auth_login(const char *user, const char *pass)
@@ -127,9 +136,13 @@ void auth_set_password(const char *user, const char *pass)
 {
     user_entry_t *u = find_user(user);
     if (!u) return;
-    kstrncpy(u->password, pass, MAX_PASSWORD);
+    
+    char hash[65];
+    sha256_make_hash(pass, hash);
+    kstrncpy(u->password, hash, MAX_PASSWORD);
+    
     auth_save();
-    printk("passwd: password updated for %s\n", user);
+    printk("passwd: password updated for %s (SHA-256)\n", user);
 }
 
 int auth_add_user(const char *user, const char *pass,
@@ -137,9 +150,14 @@ int auth_add_user(const char *user, const char *pass,
 {
     if (find_user(user)) return -1;
     if (user_count >= MAX_USERS) return -1;
+    
     user_entry_t *u = &users[user_count++];
     kstrncpy(u->username, user, MAX_USERNAME);
-    kstrncpy(u->password, pass, MAX_PASSWORD);
+    
+    char hash[65];
+    sha256_make_hash(pass, hash);
+    kstrncpy(u->password, hash, MAX_PASSWORD);
+    
     u->uid = uid; u->gid = uid;
     kstrncpy(u->home, home, MAX_HOMEDIR);
     kstrcpy(u->shell, "/bin/sh");
